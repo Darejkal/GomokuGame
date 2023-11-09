@@ -29,6 +29,12 @@ class Board:
     @property
     def board_size(self):
         return self._board_size
+    @property
+    def board_height(self):
+        return self._board_size
+    @property
+    def board_width(self):
+        return self._board_size
 
     @property
     def board_winner(self):
@@ -91,9 +97,27 @@ class Board:
         :param row: integer in range [0, board size-1]
         :param column: integer in range [0, board size-1]
         :param player_colour: Player.WHITE or Player.BLACK
-        :return:
+        :return: None
         """
         self._data[row][column] = player_colour
+    def set_silently(self, row:int, column:int, player_colour:Player):
+        """
+        Places a piece at (row, column) 
+        but does not broadcast to the board if the action made someone a winner
+        and returns a flag instead
+        :param row: integer in range [0, board size-1]
+        :param column: integer in range [0, board size-1]
+        :param player_colour: Player.WHITE or Player.BLACK
+        :return: true if there is a winner after the action, false otherwise
+        """
+        self._data[row][column] = player_colour
+        for direction in range(4):
+            line = self.get_line_of_characters(row, column, direction, must_be_the_same=True)
+            if Player.WHITE.value * 5 in line:
+                return True
+            elif Player.BLACK.value * 5 in line:
+                return True
+        return False
 
     def are_coordinates_valid(self, row:int, column:int)->bool:
         """
@@ -118,6 +142,7 @@ class Board:
                 self._board_winner = Player.WHITE
             elif Player.BLACK.value * 5 in line:
                 self._board_winner = Player.BLACK
+
 
     def get_line_of_characters(self, row:int, col:int, direction:int, must_be_the_same:bool=False)->str:
         """

@@ -1,18 +1,17 @@
 from board import Board
 from constants import BOARD_SIZE, Player
-
-
+from strategies.strategy import Strategy
+import time
 class Game:
     """
     Class that manages the game actions
     """
-    def __init__(self, strategy):
+    def __init__(self):
         """
         Initializes the game
         :param strategy: class that implements Strategy abstract class
         """
         self._board = Board(BOARD_SIZE)
-        self._strategy = strategy
 
     def restart(self):
         """
@@ -37,16 +36,21 @@ class Game:
 
         if not self.board.is_cell_empty(line, column):
             raise ValueError('Cell not empty!')
-
         self.board.set(line, column, player_colour)
+        print(f"{'Black' if player_colour==Player.BLACK else 'White'} played",(line,column))
 
-    def computer_move(self, player_colour):
+    def computer_move(self, player_colour:Player,strategy:Strategy):
         """
         Calls the strategy to compute the next move and returns it to be displayed
         :param player_colour: Player.BLACK or Player.WHITE, the player of the computer
         :return: a tuple (row,column), the coordinates of the move played by the computer
         """
-        return self._strategy.make_move(self.board, player_colour)
+        begin_time = time.time()
+        move= strategy.make_move(self.board, player_colour)
+        print(f"{'Black' if player_colour==Player.BLACK else 'White'} played",move)
+        self._board.set(move[0],move[1],player_colour)
+        print("-> Time:%.3f"%(time.time()-begin_time))
+        return move
 
     @property
     def board(self):

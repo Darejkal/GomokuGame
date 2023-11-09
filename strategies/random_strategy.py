@@ -1,5 +1,5 @@
 import random
-
+from typing import Tuple
 import constants
 from strategies.strategy import Strategy
 from board import Board
@@ -9,7 +9,7 @@ class RandomStrategy(Strategy):
     """
     Random strategy
     """
-    def make_move(self, board:Board, player_colour:Player):
+    def make_move(self, board:Board, player_colour:Player)->Tuple[int,int]:
         """
         Computes a valid move around last placed piece randomly.
         If it is not possible, places at any valid cell.
@@ -35,4 +35,4 @@ class RandomStrategy(Strategy):
                     board.set(line, column, player_colour)
                     return line, column
 
-        return None, None
+        return -1,-1

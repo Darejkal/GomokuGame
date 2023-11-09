@@ -8,7 +8,8 @@ from ui.renderer import GameRenderer
 
 class GUI:
     def __init__(self, strategy:Strategy):
-        self._game = Game(strategy)
+        self.strategy=strategy
+        self._game = Game()
         self._renderer = GameRenderer(self._game)
         self._waiting_for_restart = False
 
@@ -49,7 +50,7 @@ class GUI:
                                 self.start_game()
                         else:
                             (row, column) = self._renderer.coordinate_transform_pixel2map(*position)
-                            if row is not None and column is not None:
+                            if row is not -1 and column is not -1:
                                 self._game.human_move(row, column, Player.BLACK)
                                 self._renderer.place_piece_at_cell(row, column, Player.BLACK)
 
@@ -57,8 +58,8 @@ class GUI:
                                     # Computer step
                                     self._renderer.draw_message('Waiting for computer')
                                     pygame.display.update()
-                                    row, column = self._game.computer_move(Player.WHITE)
-                                    if row is not None and column is not None:
+                                    row, column = self._game.computer_move(Player.WHITE,self.strategy)
+                                    if row is not -1 and column is not -1:
                                         self._renderer.place_piece_at_cell(row, column, Player.WHITE)
                                         self._renderer.draw_message('Your turn')
 
@@ -74,6 +75,5 @@ class GUI:
                     preRow,preColumn=row,column
                 # update
                 pygame.display.update()
-
             except ValueError as exception:
                 print(exception)

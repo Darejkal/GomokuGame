@@ -1,8 +1,8 @@
 from board import Board
-from constants import col_change, row_change, Player,Player, BOARD_SIZE,getEnemy
+from constants import col_change, row_change, Player,Player,getEnemy,INF
 from strategies.strategy import Strategy
 from typing import Literal,List,Tuple
-INF = int(7e12)
+
 DEPTH = 4
 
 
@@ -36,13 +36,13 @@ class MinmaxStrategy(Strategy):
         :param player_colour: Player.WHITE or Player.BLACK
         :return: tuple of two integers, coordinates of computed move
         """
-        temporary_board = Board(BOARD_SIZE, board.data[:])
+        temporary_board = Board(board.board_size, board.data[:])
         initial_possibilities = self.get_possible_cells(board, [], board.get_filled_cells())
 
         best_score, best_move = self.minmax(temporary_board, DEPTH, True, -INF, INF,
                                             initial_possibilities, player_colour,
                                             [])
-        print('Computed move: ' + str(best_move) + ' score: ' + str(best_score))
+        # print('Computed move: ' + str(best_move) + ' score: ' + str(best_score))
         board.set(*best_move, player_colour)
         return best_move
 
@@ -76,7 +76,7 @@ class MinmaxStrategy(Strategy):
                 if board.get_cell_value(row, column) is not Player.NONE:
                     continue
 
-                temporary_board = Board(BOARD_SIZE, board.data[:])
+                temporary_board = Board(board.board_size, board.data[:])
 
                 temporary_board.set(row, column, player_colour)
                 moves_so_far.append((row, column))
@@ -103,7 +103,7 @@ class MinmaxStrategy(Strategy):
                 if board.get_cell_value(row, column) is not Player.NONE:
                     continue
 
-                temporary_board = Board(BOARD_SIZE, board.data[:])
+                temporary_board = Board(board.board_size, board.data[:])
                 temporary_board.set(row, column, player_colour)
                 moves_so_far.append((row, column))
                 if temporary_board.board_winner != Player.NONE:
@@ -129,7 +129,7 @@ class MinmaxStrategy(Strategy):
         heuristically sort the possible next moves by a score, given by the get_cell_importance function.
         :param moves_so_far: list of (row,column), representing cells already placed in the recursion tree
         :param board: Board object
-        :param important_cells: list of (row,column), places on the board that have pieces
+        :param important_cells: list of (row,column) integer tuples, represent cells around which pieces might be placed
         :return: list of moves, as tuples of two integers, sorted by score, descending
         """
         cells = set(important_cells)
@@ -190,6 +190,7 @@ class MinmaxStrategy(Strategy):
         value = 0
 
         board.set_without_checking(row, column, Player.WHITE)
+        
         for direction in range(4):
             value += len(board.get_line_of_characters(row, column, direction, must_be_the_same=True)) ** 3
 
