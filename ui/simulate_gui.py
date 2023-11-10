@@ -55,25 +55,34 @@ class SimulateGUI:
                     elif event.type == MOUSEBUTTONDOWN:
                         if self._renderer.was_play_again_pressed() and self.state==Player.NONE:
                                 self.start_game()
-                if not self._game.is_game_finished and self.state==Player.BLACK:
+                if  self.state==Player.BLACK:
                     if self.move is not None:
                         row,column=self.move
                         self._renderer.place_piece_at_cell(row, column, Player.BLACK)
-                        self.move=None
-                        self.state=Player.WHITE
-                        threading.Thread(target=self.get_npc_move, args=[Player.WHITE,self.strategy2]).start()
+
+                        if not self._game.is_game_finished:
+                            self.move=None
+                            self.state=Player.WHITE
+                            threading.Thread(target=self.get_npc_move, args=[Player.WHITE,self.strategy2]).start()
+                        else:
+                            self.move=(-1,-1)
                     self._renderer.draw_message('Waiting for player black')
 
-                if not self._game.is_game_finished and self.state==Player.WHITE:
+                if self.state==Player.WHITE:
                     if self.move is not None:
                         row,column=self.move
                         self._renderer.place_piece_at_cell(row, column, Player.WHITE)
-                        self.move=None
-                        self.state=Player.BLACK
-                        threading.Thread(target=self.get_npc_move, args=[Player.BLACK,self.strategy1]).start()
+
+                        if not self._game.is_game_finished:
+                            self.move=None
+                            self.state=Player.BLACK
+                            threading.Thread(target=self.get_npc_move, args=[Player.BLACK,self.strategy1]).start()
+                        else:
+                            self.move=(-1,-1)
                     self._renderer.draw_message('Waiting for player white')
 
-                if self._game.is_game_finished and not self.state==Player.NONE:
+                if self._game.is_game_finished and self.move is (-1,-1) and not self.state==Player.NONE:
+                    self.move=(-1,-1)
                     self.draw_winner()
                     self.state = Player.NONE
                 pygame.display.update()
