@@ -1,8 +1,6 @@
-
-from constants import Player, row_change, col_change
+from constants import Player, row_change, col_change,getEnemy
 from typing import Literal,List,Tuple
 import random
-
 class Board:
     """
     Class that manages the Gomoku board
@@ -51,6 +49,17 @@ class Board:
     @property
     def data(self):
         return self._data
+
+    def get_new_board_apply(self,player:Player,moves:List[Tuple[int,int]]):
+        r=Board(self.board_size,self.data[:])
+        flag=True
+        for m in moves:
+            if flag:
+                r.set(m[0],m[1],player)
+            else:
+                r.set(m[0],m[1],getEnemy(player))
+            flag=not flag
+        return r
 
     def get_cell_value(self, row:int, column:int)->Player:
         """

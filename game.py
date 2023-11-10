@@ -1,6 +1,8 @@
 from board import Board
 from constants import BOARD_SIZE, Player
 from strategies.strategy import Strategy
+from strategies.minmax_strategy import MinmaxStrategy
+from strategies.genetic_strategy import GeneticStrategy
 import time
 class Game:
     """
@@ -49,7 +51,16 @@ class Game:
         move= strategy.make_move(self.board, player_colour)
         print(f"{'Black' if player_colour==Player.BLACK else 'White'} played",move)
         self._board.set(move[0],move[1],player_colour)
-        print("-> Time:%.3f"%(time.time()-begin_time))
+        run_diff=(time.time()-begin_time)
+        print("-> Time:%.3f"%run_diff)
+        strategyStr=None
+        if isinstance(strategy,MinmaxStrategy):
+            strategyStr="MinMax"
+        elif isinstance(strategy,GeneticStrategy):
+            strategyStr="Genetic"
+        if strategyStr:
+            with open("data.txt","+a") as f:
+                f.write(strategyStr+f" {run_diff}\n")
         return move
 
     @property

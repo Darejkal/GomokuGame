@@ -67,6 +67,18 @@ class GameRenderer:
     def place_piece_at_cell(self, row:int, column:int, player:Player):
         x_coordinate, y_coordinate = self.coordinate_transform_map2pixel(row, column)
         self.place_piece_at_coordinates(x_coordinate, y_coordinate, player)
+    # def draw_surface_at_cell(self, row:int, column:int, surface:pygame.Surface):
+    #     x_coordinate, y_coordinate = self.coordinate_transform_map2pixel(row, column)
+    #     surf=pygame.transform.smoothscale(surface, (PIECE, PIECE))
+    #     self.__screen.blit(surf, (x_coordinate, y_coordinate))
+    def draw_text_at_cell(self, row:int, column:int, text:str):
+        x_coordinate, y_coordinate = self.coordinate_transform_map2pixel(row, column)
+        text_surf = self.__font.render(text, True, (255, 0, 0))
+        w,h=text_surf.get_size()
+        m=max(h,w)
+        w,h=PIECE*w/m,PIECE*h/m
+        surf=pygame.transform.smoothscale(text_surf, (w, h))
+        self.__screen.blit(surf, (x_coordinate+(PIECE-surf.get_width())/2, y_coordinate+(PIECE-surf.get_height())/2))
     # def draw_unsafe_at_coordinates(self, x_coordinate:float, y_coordinate:float, surf:pygame.Surface):
     #     self.__screen.blit(surf, (x_coordinate, y_coordinate))
     def highlight_at_cell(self,row:int,column:int,highlight:bool=True,playerAtCell:Player=Player.NONE):

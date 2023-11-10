@@ -16,9 +16,11 @@ class SimulateGUI:
         self._renderer = GameRenderer(self._game)
         self.state:Player=Player.NONE
         self.move:None|Tuple[int,int]=None
+        self.turn_count=1
         # self.clock = pygame.time.Clock()
 
     def start_game(self):
+        self.turn_count=1
         self._renderer.draw_board()
         self._game.restart()
         self.move=self._game.computer_move(Player.BLACK,RandomStrategy())
@@ -43,7 +45,6 @@ class SimulateGUI:
             self.move=move
     def start(self):
         self.start_game()
-        loading_count=0
         # Main loop
         while True:
             
@@ -59,7 +60,8 @@ class SimulateGUI:
                     if self.move is not None:
                         row,column=self.move
                         self._renderer.place_piece_at_cell(row, column, Player.BLACK)
-
+                        self._renderer.draw_text_at_cell(row,column,str(self.turn_count))
+                        self.turn_count+=1
                         if not self._game.is_game_finished:
                             self.move=None
                             self.state=Player.WHITE
@@ -72,7 +74,8 @@ class SimulateGUI:
                     if self.move is not None:
                         row,column=self.move
                         self._renderer.place_piece_at_cell(row, column, Player.WHITE)
-
+                        self._renderer.draw_text_at_cell(row,column,str(self.turn_count))
+                        self.turn_count+=1
                         if not self._game.is_game_finished:
                             self.move=None
                             self.state=Player.BLACK

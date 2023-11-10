@@ -1,7 +1,7 @@
 from board import Board
-from constants import col_change, row_change, Player,Player,getEnemy,INF
+from constants import col_change, row_change, Player,Player,getEnemy,INF,HEURISTIC_SCORES
 from strategies.strategy import Strategy
-from typing import Literal,List,Tuple
+from typing import Literal,List,Tuple,Dict
 
 DEPTH = 4
 
@@ -11,23 +11,7 @@ class MinmaxStrategy(Strategy):
     """
     Strategy that uses Minmax algorithm with alpha-beta pruning to compute next move
     """
-    # Scores used to evaluate a given board, + being a piece of the player at move and - the other player
-    HEURISTIC_SCORES = {
-        "-----": -1000000000000,
-        "+++++": 1000000000000,
-        " ---- ": -50000000000,
-        " ++++ ": 10000000000,
-        "-++++ ": 100000000,
-        " ++++-": 100000000,
-        " ----+": -500000000,
-        "+---- ": -500000000,
-        " +++ ": 1000,
-        " +++-": 150,
-        " ---+": -50,
-        " --- ": -5000,
-        " ++ ": 10,
-        " -- ": -50
-    }
+
 
     def make_move(self, board, player_colour) -> Tuple[int,int]:
         """
@@ -43,6 +27,9 @@ class MinmaxStrategy(Strategy):
                                             initial_possibilities, player_colour,
                                             [])
         # print('Computed move: ' + str(best_move) + ' score: ' + str(best_score))
+        if best_move==(-1,-1):
+            board.set(*initial_possibilities[0], player_colour)
+            return initial_possibilities[0]
         board.set(*best_move, player_colour)
         return best_move
 
@@ -121,8 +108,8 @@ class MinmaxStrategy(Strategy):
                 if beta <= alpha:
                     break
         return best_score, best_move
-
-    def get_possible_cells(self, board:Board, important_cells:List[Tuple[int,int]], moves_so_far:List[Tuple[int,int]])->List[Tuple[int,int]]:
+    @staticmethod
+    def get_possible_cells(board:Board, important_cells:List[Tuple[int,int]], moves_so_far:List[Tuple[int,int]])->List[Tuple[int,int]]:
         """
         Generates the cells that should be checked further, in a heuristic manner.
         Checking every cell on the board is too computationally expensive, so we have to
@@ -145,9 +132,9 @@ class MinmaxStrategy(Strategy):
 
         cells = list(cells) + moves_so_far
 
-        return sorted(cells, key=lambda cell: self.get_cell_importance(board, *cell), reverse=True)[:10]
-
-    def evaluate_board(self, board:Board, player:Player, moves_so_far:List[Tuple[int,int]])->int:
+        return sorted(cells, key=lambda cell: MinmaxStrategy.get_cell_importance(board, *cell), reverse=True)[:10]
+    @staticmethod
+    def evaluate_board(board:Board, player:Player, moves_so_far:List[Tuple[int,int]],heuristic:Dict[str,int]=HEURISTIC_SCORES)->int:
         """
         Heuristic function to evaluate the entire board.
         :param board: Board object
@@ -170,8 +157,8 @@ class MinmaxStrategy(Strategy):
                 for substring in substrings:
                     values[substring] = values[substring] + 1 if substring in values else 1
 
-                for item in self.HEURISTIC_SCORES.keys():
-                    score += self.HEURISTIC_SCORES[item] * values[item] if item in values else 0
+                for item in heuristic.keys():
+                    score += heuristic[item] * values[item] if item in values else 0
 
         return score
 
