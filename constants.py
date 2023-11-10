@@ -1,7 +1,7 @@
 from enum import Enum
 import typing
 INF = int(7e12)
-BOARD_SIZE = 15
+BOARD_SIZE = 10
 
 WHITE = "#FFFFFF"
 BLACK = "#000000"

@@ -6,6 +6,7 @@ from ui.simulate_gui import SimulateGUI
 
 if __name__ == '__main__':
     # interface = GUI(MinmaxStrategy())
-    interface = SimulateGUI(GeneticStrategy(),MinmaxStrategy())
+    interface = SimulateGUI(MinmaxStrategy(5),MinmaxStrategy(4))
+    # interface = SimulateGUI(MinmaxStrategy(5),MinmaxStrategy(4))
 
     interface.start()

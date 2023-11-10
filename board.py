@@ -152,7 +152,52 @@ class Board:
             elif Player.BLACK.value * 5 in line:
                 self._board_winner = Player.BLACK
 
+    def get_line_of_allowed_characters(self, row:int, col:int, direction:int, character_list:List[str])->str:
+        """
+        From a given cell, gets row/column/diagonal in the direction specified
+        Beginning from the cell, it expands at most 7 cells in both directions
+        All cell must has value as specified in character_list.
+        :param row: integer in range [0, board size-1]
+        :param col: integer in range [0, board size-1]
+        :param direction: integer in range [0, 7], 0 being north and going clockwise
+        :param character_list: list of allowed characters
+        :return: string with characters ' ', 'B' and 'W'
+        """
+        cell_value = self.get_cell_value(row, col)
+        if not cell_value.value in character_list:
+            return ""
+        line = cell_value.value
 
+        new_row, new_col = row, col
+        length:int = 0
+
+        while self.are_coordinates_valid(new_row + row_change[direction], new_col + col_change[direction]) \
+                and length < 7:
+
+            if character_list and self.get_cell_value(new_row + row_change[direction],
+                                                        new_col + col_change[direction]).value not in character_list:
+                break
+
+            length += 1
+            new_row += row_change[direction]
+            new_col += col_change[direction]
+            line = line + self.get_cell_value(new_row, new_col).value
+
+        new_row, new_col = row, col
+        length = 0
+
+        while self.are_coordinates_valid(new_row - row_change[direction], new_col - col_change[direction]) \
+                and length < 7:
+
+            if character_list and self.get_cell_value(new_row - row_change[direction],
+                                                        new_col - col_change[direction]).value not in character_list:
+                break
+
+            length += 1
+            new_row -= row_change[direction]
+            new_col -= col_change[direction]
+            line = self.get_cell_value(new_row, new_col).value + line
+        return line
     def get_line_of_characters(self, row:int, col:int, direction:int, must_be_the_same:bool=False)->str:
         """
         From a given cell, gets row/column/diagonal in the direction specified

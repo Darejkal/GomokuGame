@@ -3,11 +3,20 @@ from pygame.locals import QUIT,MOUSEBUTTONDOWN
 from strategies.strategy import Strategy
 from strategies.random_strategy import RandomStrategy
 from constants import Player,getEnemy
+from strategies.strategy import Strategy
+from strategies.minmax_strategy import MinmaxStrategy
+from strategies.genetic_strategy import GeneticStrategy
 from game import Game
 from ui.renderer import GameRenderer
 from typing import Tuple
 import time
 import threading
+def getStrategyStr(strategy:Strategy):
+    if isinstance(strategy,MinmaxStrategy):
+        return f"MinMax-{strategy.depth}"
+    elif isinstance(strategy,GeneticStrategy):
+        return "Genetic"
+    return "UnknownStrategy"
 class SimulateGUI:
     def __init__(self, strategy1:Strategy,strategy2:Strategy):
         self.strategy1=strategy1
@@ -85,9 +94,15 @@ class SimulateGUI:
                     self._renderer.draw_message('Waiting for player white')
 
                 if self._game.is_game_finished and self.move is (-1,-1) and not self.state==Player.NONE:
+                    with open("data.txt","a+") as f:
+                        winner=self.strategy1 if self.state==Player.BLACK else self.strategy2
+                        loser=self.strategy2 if self.state==Player.BLACK else self.strategy1
+                        f.write(f"{getStrategyStr(winner)} {'draws' if self._game.board.is_draw else 'win'} {getStrategyStr(loser)} {self.turn_count}\n")
                     self.move=(-1,-1)
                     self.draw_winner()
                     self.state = Player.NONE
+                    # to remove
+                    self.start_game()
                 pygame.display.update()
             except ValueError as exception:
                 print(exception)

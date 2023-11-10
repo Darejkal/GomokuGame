@@ -3,7 +3,6 @@ from constants import col_change, row_change, Player,Player,getEnemy,INF,HEURIST
 from strategies.strategy import Strategy
 from typing import Literal,List,Tuple,Dict
 
-DEPTH = 4
 
 
 # noinspection DuplicatedCode
@@ -11,7 +10,9 @@ class MinmaxStrategy(Strategy):
     """
     Strategy that uses Minmax algorithm with alpha-beta pruning to compute next move
     """
-
+    def __init__(self,depth=4) -> None:
+        super().__init__()
+        self.depth=depth
 
     def make_move(self, board, player_colour) -> Tuple[int,int]:
         """
@@ -23,7 +24,7 @@ class MinmaxStrategy(Strategy):
         temporary_board = Board(board.board_size, board.data[:])
         initial_possibilities = self.get_possible_cells(board, [], board.get_filled_cells())
 
-        best_score, best_move = self.minmax(temporary_board, DEPTH, True, -INF, INF,
+        best_score, best_move = self.minmax(temporary_board, self.depth, True, -INF, INF,
                                             initial_possibilities, player_colour,
                                             [])
         # print('Computed move: ' + str(best_move) + ' score: ' + str(best_score))

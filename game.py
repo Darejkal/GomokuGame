@@ -53,14 +53,6 @@ class Game:
         self._board.set(move[0],move[1],player_colour)
         run_diff=(time.time()-begin_time)
         print("-> Time:%.3f"%run_diff)
-        strategyStr=None
-        if isinstance(strategy,MinmaxStrategy):
-            strategyStr="MinMax"
-        elif isinstance(strategy,GeneticStrategy):
-            strategyStr="Genetic"
-        if strategyStr:
-            with open("data.txt","+a") as f:
-                f.write(strategyStr+f" {run_diff}\n")
         return move
 
     @property

@@ -7,88 +7,34 @@ from board import Board
 from strategies.strategy import Strategy
 from strategies.minmax_strategy import MinmaxStrategy
 from constants import Player,getEnemy,INF,HEURISTIC_SCORES_GENETICS
-# def evaluate_cell_and_get_winning_flag(board:Board, row:int, column:int):
-#     """
-#     Heuristic that computes the importance of a given piece on the board,
-#     depending on the length of the same colour piece line it forms
-#     :param board: Board object
-#     :param row: integer in range [0, board size - 1]
-#     :param column: integer in range [0, board size - 1]
-#     :return: Integer value denoting the importance and a flag on whether someone will win if a move on the cell is made in the next turn
-#     """
-#     if board.get_cell_value(row, column) != Player.NONE:
-#         return 0,False
-#     value = 0
-
-#     flag=board.set_silently(row, column, Player.WHITE)
-#     for direction in range(4):
-#         value += (len(board.get_line_of_characters(row, column, direction, must_be_the_same=True))-1) * 500
-#     flag= flag or board.set_silently(row, column, Player.BLACK)
-#     for direction in range(4):
-#         value += (len(board.get_line_of_characters(row, column, direction, must_be_the_same=True))-1) * 500
-#     board.set_without_checking(row, column, Player.NONE)
-#     return value,flag
-def evaluate_board(board:Board, player:Player, moves_so_far:List[Tuple[int,int]])->int:
+def get_cell_importance(board:Board,player:Player, row:int, column:int):
     """
-    Heuristic function to evaluate the entire board.
+    Heuristic that computes the importance of a given piece on the board,
+    depending on the length of the same colour piece line it forms
     :param board: Board object
-    :param player: Player.WHITE or Player.BLACK, maximizer player
-    :param moves_so_far: list of (row,column), representing cells already placed in the recursion tree
-    :return: The score of the whole board, after evaluation
+    :param row: integer in range [0, board size - 1]
+    :param column: integer in range [0, board size - 1]
+    :return: Integer value denoting the importance
     """
-    score = 0
-    maximizer = player
-    minimizer = getEnemy(player)
+    if board.get_cell_value(row, column) != Player.NONE:
+        return 0
+    value = 0
 
-    for row, column in moves_so_far:
-        for direction in range(4):
-            line = board.get_line_of_characters(row, column, direction)
-            line = line.replace(maximizer.value, '+').replace(minimizer.value, '-')
+    board.set_without_checking(row, column, player)
+    
+    for direction in range(4):
+        if len(board.get_line_of_allowed_characters(row, column, direction, [player.value,Player.NONE.value]))>4:
+            value += len(board.get_line_of_characters(row, column, direction, must_be_the_same=True))**4 *1250\
+                +len(board.get_line_of_allowed_characters(row, column, direction, [player.value,Player.NONE.value]))*200
 
-            values = {}
-            substrings = [line[i:i + length] for length in [4, 5, 6] for i in range(len(line)) if
-                            i + length < len(line)]
-            for substring in substrings:
-                values[substring] = values[substring] + 1 if substring in values else 1
+    board.set_without_checking(row, column, getEnemy(player))
+    for direction in range(4):
+        if len(board.get_line_of_allowed_characters(row, column, direction, [getEnemy(player).value,Player.NONE.value]))>4:
+            value += len(board.get_line_of_characters(row, column, direction, must_be_the_same=True))**4 *5000
 
-            for item in HEURISTIC_SCORES_GENETICS.keys():
-                score += HEURISTIC_SCORES_GENETICS[item] * values[item] if item in values else 0
-    return score
-# def eval_individual(board:Board, player:Player,opponent:Player,moves:List[Tuple[int,int]],n_in_line = 5):
-#     if len(set(moves)) != len(moves):
-#         return -1
-#     current_board = Board(board.board_size,board.data[:])
-#     value = 0
-#     sign = 1
-#     players=[player,opponent]
-#     me_win = False
-#     opp_win = False 
-#     for move in moves:
-#         if me_win:
-#             value += 2 * 100000
-#         elif opp_win:
-#             value -= 2 * 100000
-#         else:
-#             evaluation = evaluate_cell_and_get_winning_flag(current_board,*move)
-#             if evaluation[1]:
-#                 if players[0] == evaluation[1]: 
-#                     me_win = True
-#                 else: 
-#                     opp_win = True
-#             value += sign * evaluation[0]
-#             current_board.set(move[0],move[1],players[0])
-#             sign = -sign
-#             players.reverse()
-#     return value
+    board.set_without_checking(row, column, Player.NONE)
 
-# def mutate(original_individual:List[Tuple[int,int]], potential_gene:List[Tuple[int,int]])->List[Tuple[int,int]]:
-#     individual = [ i for i in original_individual]
-#     pos = random.randint(0,len(individual)-1)
-#     gene = individual[pos]
-#     while gene == individual[pos]:
-#         gene = random.sample(potential_gene,1)[0]
-#     individual[pos] = gene
-#     return individual
+    return value
 def mutate(original_individual:List[Tuple[int,int]], potential_gene:List[Tuple[int,int]])->List[Tuple[int,int]]:
     individual = [ i for i in original_individual]
     pos = random.randint(0,len(individual)-1)
@@ -102,7 +48,8 @@ def crossover(original_individual1:List[Tuple[int,int]],original_individual2:Lis
     individual1 = [i for i in original_individual1]
     individual2 = [i for i in original_individual2]
     assert len(individual1) == len(individual2),"Individual must have same length!"
-    pos = random.randint(0, len(individual1) - 1)
+    # pos = random.randint(1, len(individual1) - 1)
+    pos = 1
     tem = individual1[pos:]
     individual1[pos:] = individual2[pos:]
     individual2[pos:] = tem
@@ -125,7 +72,8 @@ class Population:
         self.currentgeneration:List[List[Tuple[int,int]]] = self.__begin_generation(start_number=start_number)
 
     def __begin_generation(self,start_number:int)->List[List[Tuple[int,int]]]:
-        assert len(self.DNA_base) >= self.DNA_length, "Potential gene is not adequate!"
+        if len(self.DNA_base) >= self.DNA_length:
+            print("Potential gene is not adequate!")
         generation:List[List[Tuple[int,int]]] = []
         for _ in range(start_number):
             DNA = random.sample(self.DNA_base,min(self.DNA_length,len(self.DNA_base)))
@@ -135,9 +83,12 @@ class Population:
     def select(self,board:Board,player:Player,opponent:Player):
         print(self.best_5)
         grades = list(map(lambda x: (self.select_function(x,board,player,opponent), x), self.currentgeneration))
-        self.currentgeneration = list(map(lambda xy: xy[1],
-                                          sorted(grades,key= (lambda x: x[0]),reverse=True)[:int(len(self.currentgeneration)*self.survival_rate)]))
-
+        sortedGenePool=list(map(lambda xy: xy[1],sorted(grades,key= (lambda x: x[0]),reverse=True)))
+        if(self.DNA_length>1):
+            self.currentgeneration = [[sortedGenePool[i][0]]+sortedGenePool[-i-1][1:] for i in range(int(len(self.currentgeneration)*self.survival_rate))]
+        else:
+            self.currentgeneration=sortedGenePool[:int(len(self.currentgeneration)*self.survival_rate)]
+        print([x[0] for x in self.currentgeneration[:5]])
     def findandadd_best(self):
         # this step needs caching
         best_sol = Counter([i[0] for i in self.currentgeneration]).most_common(1)[0]
@@ -164,7 +115,7 @@ class Population:
             self.currentgeneration.append(new_DNA)
     def select_function(self,moves:List[Tuple[int,int]],board:Board,player:Player,opponent:Player,n_in_line=5):
         return MinmaxStrategy.evaluate_board(board.get_new_board_apply(player,moves),player,moves,HEURISTIC_SCORES_GENETICS)\
-            +MinmaxStrategy.get_cell_importance(board,*moves[0])*10000000
+            +get_cell_importance(board,player,*moves[0])*10000000
 class GeneticStrategy(Strategy):
     def make_move(self,board:Board, player:Player,time_limit=20.0) -> Tuple[int,int]:
         possible_cells=self.get_possible_cells(board)
