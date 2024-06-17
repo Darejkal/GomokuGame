@@ -1,2 +1,0 @@
-# GomokuGame
-Gomoku Game
